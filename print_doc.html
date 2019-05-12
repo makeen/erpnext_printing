@@ -1,0 +1,102 @@
+<h3>{{ doc.select_print_heading or _("Sales Order") }}</h3>
+    <div class="row">
+        <div class="col-md-3 text-right">{{ _("Customer Name") }}</div>
+        <div class="col-md-9">{{ doc.customer_name }}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 text-right">Date</div>
+        <div class="col-md-9">{{ doc.get_formatted("invoice_date") }}</div>
+    </div>
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <!--<th>{{_("Sr")}}</th>-->
+                <th>{{_("Description")}}</th>
+                <th class="text-right">{{_("Quantity")}}</th>
+                {% if doc.print_prices %}
+                <th class="text-right">{{_("Rate")}}</th>
+                <th class="text-right">{{_("Discount")}}</th>
+                <th class="text-right">{{_("Amount")}}</th>
+                {% endif %}
+            </tr>
+            {%- for row in doc.items -%}
+            <tr>
+                <!--<td style="width: 3%;">{{ row.idx }}</td>-->
+                <td class="print-col-description">
+                    {% if doc.print_items_images -%}
+                    {% set base = "" %}
+                    {% if(row.image[:4] != "http") %}
+                    {% set base = frappe.utils.get_url() %}
+                    {% endif %}
+                        <img class="img-responsive print-item-image" src="{{ base }}{{ row.image }}" />
+                    {%- endif %}
+                    {% if row.item_code != row.item_name -%}
+                    <br><b>{{ row.item_code}}</b>
+                    {%- endif %}
+                    {{ _(row.item_name) }}
+                    <div class="print-item-description">{{ _(row.description) }}</div></td>
+                <td class="{% if doc.print_prices %}print-col-quantity{% else %}print-col-quantity-only{% endif %}">
+                    {{ row.get_formatted("qty", doc) }}
+                    <spam class="small">
+                        {{ _(row.uom) or _(row.stock_uom) }}
+                        {% if row.stock_uom != row.uom -%}
+                            <br>{{ row.conversion_factor * row.qty }} {{ _(row.stock_uom) }}
+                        {%- endif %}
+                    </spam>
+                    </td>
+                {% if doc.print_prices -%}
+                    <td class="print-col-rate">{{
+                    row.get_formatted("rate", doc) }}</td>
+                    <td class="print-col-discount">
+                    {% if row.discount_percentage -%}{{
+                        row.get_formatted("discount_percentage", doc) }}
+                    {%- endif %}</td>
+                    <td class="print-col-amount">{{
+                    row.get_formatted("amount", doc) }}</td>
+                {%- endif %}
+            </tr>
+            {%- endfor -%}
+        </tbody>
+    </table>
+
+<style>
+.print-item-description{
+    font-size: 60%;
+    color:gray;
+    height: 2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.print-item-image{
+    max-width:9rem !important;
+    max-height:10rem !important;
+    float:left;
+    margin-right: 1rem;
+}
+.print-col-description{
+    width: 50%;
+}
+.print-col-quantity{
+    width: 15%;
+    text-align: right;
+}
+.print-col-quantity-only{
+    width: 50%;
+    text-align: right;
+}
+.print-col-rate{
+    width: 12.5%;
+    text-align: right;
+}
+.print-col-discount{
+    width: 10%;
+    text-align: right;
+}
+.print-col-amount{
+    width: 12.5%;
+    text-align: right;
+}
+.small{
+    color:gray;
+}
+</style>
