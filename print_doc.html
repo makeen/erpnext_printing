@@ -15,7 +15,6 @@
                 <th class="text-right">{{_("Quantity")}}</th>
                 {% if doc.print_prices %}
                 <th class="text-right">{{_("Rate")}}</th>
-                <th class="text-right">{{_("Discount")}}</th>
                 <th class="text-right">{{_("Amount")}}</th>
                 {% endif %}
             </tr>
@@ -24,17 +23,27 @@
                 <!--<td style="width: 3%;">{{ row.idx }}</td>-->
                 <td class="print-col-description">
                     {% if doc.print_items_images -%}
+                    {% if not row.image -%}
+                    {% set image = "https://www.syncros.com/_ui/responsive/common/images/no-product-image-available.png" %}
+                    {% else %}
+                    {% set image = row.image %}
+                    {% endif %}
                     {% set base = "" %}
-                    {% if(row.image[:4] != "http") %}
+                    {% if(image[:4] != "http") %}
                     {% set base = frappe.utils.get_url() %}
                     {% endif %}
-                        <img class="img-responsive print-item-image" src="{{ base }}{{ row.image }}" />
+                        <img class="img-responsive print-item-image" src="{{ base }}{{ image }}" />
                     {%- endif %}
                     {% if row.item_code != row.item_name -%}
-                    <br><b>{{ row.item_code}}</b>
+                    <b>{{ row.item_code}}</b>
                     {%- endif %}
                     {{ _(row.item_name) }}
-                    <div class="print-item-description">{{ _(row.description) }}</div></td>
+                    <!--<div class="print-item-description">{{ _(row.description) }}</div>-->
+                    <div class="print_item-discount">{{ _("Rate") }}: {{ row.get_formatted("price_list_rate", doc) }}</div>
+                    {% if row.discount_percentage -%}
+			            <div class="print_item-discount">{{ _("Discount") }}: {{ row.get_formatted("discount_percentage", doc) }}</div>
+                    {%- endif %}
+                </td>
                 <td class="{% if doc.print_prices %}print-col-quantity{% else %}print-col-quantity-only{% endif %}">
                     {{ row.get_formatted("qty", doc) }}
                     <spam class="small">
@@ -47,10 +56,6 @@
                 {% if doc.print_prices -%}
                     <td class="print-col-rate">{{
                     row.get_formatted("rate", doc) }}</td>
-                    <td class="print-col-discount">
-                    {% if row.discount_percentage -%}{{
-                        row.get_formatted("discount_percentage", doc) }}
-                    {%- endif %}</td>
                     <td class="print-col-amount">{{
                     row.get_formatted("amount", doc) }}</td>
                 {%- endif %}
